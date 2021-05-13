@@ -1,4 +1,4 @@
-#include "L1Trigger/L1TMuonOverlapPhase1/plugins/MuonMatcher.h"
+#include "HLTrigger/Configuration/plugins/MuonMatcher.h"
 
 MuonMatcher::MuonMatcher(const edm::ParameterSet& iCfg) {
     src_ = iCfg.getParameter<edm::InputTag>("src");
@@ -19,7 +19,7 @@ void MuonMatcher::endJob(){
 void MuonMatcher::produce(edm::Event& iEv, const edm::EventSetup& eventSetup){
   eventSetup.get<GlobalTrackingGeometryRecord>().get(globalGeometry);
   eventSetup.get<IdealMagneticFieldRecord>().get(magField);
-  eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAlong", propagator);
+  eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorOpposite", propagator);
   
   std::vector<float> valuesEta;
   std::vector<float> valuesPhi;
