@@ -31,7 +31,7 @@
 <use name="DataFormats/Common" />
 <use name="DataFormats/DetId" />
 <use name="DataFormats/GeometryVector" />
-<use name="DataFormats/GeometrySurface" />
+<use name="DataFormats/BeamSpot" />
 <use name="DataFormats/SiPixelDigi" />
 <use name="DataFormats/TrackReco" />
 <use name="DataFormats/VertexReco" />

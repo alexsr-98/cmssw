@@ -24,7 +24,7 @@ process.load("HLTrigger.Configuration.MuonMatcher_cfg")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100),
+    input = cms.untracked.int32(3000),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -84,7 +84,7 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
     ###outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
     outputCommands = cms.untracked.vstring('drop *',
     'keep *_genParticles_*_*',
-    'keep recoGenParticles_*_*_*',
+    'keep *_dispGenEta_*_*',
     'keep *_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_*_*',
     'keep *_hltL1fL1sMu22L1Filtered0_*_*',
     'keep *_hltL3fL1f0L2NoVtx15Filtered24Displaced_*_*',
@@ -98,6 +98,7 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
     'keep *_hltL2MuonCandidatesNoVtx_*_*',
     'keep *_hltL2MuonCandidatesNoVtxMeanTimerCosmicSeed_*_*',
     'keep *_hltL3NoFiltersNoVtxMuonCandidates_*_*',
+    'keep *_hltOnlineBeamSpot_*_*',
     'keep l1tMuonBXVector_*_*_*'),
     splitLevel = cms.untracked.int32(0)
 )

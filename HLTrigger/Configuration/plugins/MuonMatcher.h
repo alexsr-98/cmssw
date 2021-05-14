@@ -21,6 +21,7 @@
 
 #include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
 
+
 class MuonMatcher : public edm::EDProducer{
   public:
     MuonMatcher(const edm::ParameterSet&);
@@ -28,8 +29,8 @@ class MuonMatcher : public edm::EDProducer{
 
   private:
     virtual void beginJob();
-    float propagateGenPart(std::vector<reco::GenParticle>::const_iterator);
-    float propagateGenPartPhi(std::vector<reco::GenParticle>::const_iterator);
+    float propagateGenPart(std::vector<reco::GenParticle>::const_iterator, reco::BeamSpot BeamSpot);
+    float propagateGenPartPhi(std::vector<reco::GenParticle>::const_iterator, reco::BeamSpot BeamSpot);
     virtual void produce(edm::Event&, const edm::EventSetup&);
     virtual void endJob();
     edm::InputTag src_;
