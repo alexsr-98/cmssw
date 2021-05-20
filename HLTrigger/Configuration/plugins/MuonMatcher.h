@@ -20,6 +20,17 @@
 #include "TrackPropagation/SteppingHelixPropagator/interface/SteppingHelixStateInfo.h"
 
 #include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+
+#include "CLHEP/Vector/ThreeVector.h"
+#include "CLHEP/Vector/LorentzVector.h"
+#include "CLHEP/Matrix/Vector.h"
+#include <string>
+#include "DataFormats/Common/interface/Association.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
 
 
 class MuonMatcher : public edm::EDProducer{
@@ -34,9 +45,11 @@ class MuonMatcher : public edm::EDProducer{
     virtual void produce(edm::Event&, const edm::EventSetup&);
     virtual void endJob();
     edm::InputTag src_;
-    edm::EDGetTokenT<std::vector<reco::GenParticle>> genParts_token;
+    const edm::EDGetTokenT<reco::GenParticleCollection> genParts_token;
     edm::ESHandle<GlobalTrackingGeometry> globalGeometry;
     edm::ESHandle<MagneticField> magField;
     edm::ESHandle<Propagator> propagator;
-
+    const edm::EDGetTokenT<reco::GenParticleCollection> Cands_;
+    const edm::EDGetTokenT<edm::Association<reco::GenParticleCollection>> Asso_;
+    const edm::EDGetTokenT<edm::Association<reco::GenParticleCollection>> AssoOriginal_;
 };
