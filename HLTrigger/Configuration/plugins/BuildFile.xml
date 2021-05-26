@@ -1,5 +1,5 @@
 <library file="*.cc" name="HLTriggerConfigurationPlugins"> 
-  <use name="HLTrigger/Configuration"/>
+
   <use name="CondFormats/L1TObjects"/>
   <use name="CondFormats/DataRecord"/>
   <use name="FWCore/ServiceRegistry"/>
@@ -15,6 +15,7 @@
 <use name="Geometry/Records" />
 <use name="Geometry/CommonDetUnit" />
 <use name="Geometry/RPCGeometry" />
+<use name="PhysicsTools/PatAlgos"/>
 <use name="Geometry/DTGeometry" />
 <use name="Geometry/CSCGeometry" />
 <use name="SimDataFormats/GeneratorProducts" />
@@ -22,7 +23,7 @@
 <use name="L1Trigger/RPCTrigger" />
 <use name="heppdt" />
 
-<use name="L1Trigger/TrackFindingTracklet" />
+
 
 <use name="FWCore/PluginManager" />
 <use name="FWCore/Utilities" />
@@ -40,11 +41,15 @@
 <use name="FWCore/MessageLogger" />
 <use name="DataFormats/L1Trigger" />
 <use name="DataFormats/HepMCCandidate" />
+<use name="DataFormats/Candidate"/>
+<use name="DataFormats/MuonReco"/>
 <use name="SimDataFormats/Vertex" />
 <use name="SimDataFormats/TrackingHit" />
 <use name="TrackingTools/Records" />
 <use name="TrackingTools/PatternTools" />
 <use name="TrackingTools/TrajectoryState" />
+<use name="DataFormats/PatCandidates"/>
+<use name="HLTrigger/HLTcore"/>
 <use name="TrackingTools/GeomPropagators" />
 <use name="TrackingTools/TransientTrack" />
 <use name="TrackingTools/TrajectoryParametrization" />

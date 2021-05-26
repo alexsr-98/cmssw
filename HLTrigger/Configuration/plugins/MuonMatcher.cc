@@ -1,4 +1,4 @@
-  #include "HLTrigger/Configuration/plugins/MuonMatcher.h"
+#include "HLTrigger/Configuration/plugins/MuonMatcher.h"
 
 
 #include "iostream"
@@ -6,14 +6,11 @@
 using namespace std;
 
 MuonMatcher::MuonMatcher(const edm::ParameterSet& iCfg) : 
-    genParts_token(consumes<reco::GenParticleCollection>(iCfg.getParameter<edm::InputTag>("inputOriginal"))),
+    genParts_token(consumes<std::vector<reco::GenParticle>>(iCfg.getParameter<edm::InputTag>("inputOriginal"))),
     Cands_(consumes<reco::GenParticleCollection>(iCfg.getParameter<edm::InputTag>("inputCollection"))),
-    Asso_(consumes<edm::Association<reco::GenParticleCollection>>(iCfg.getParameter<edm::InputTag>("Map"))),
-    AssoOriginal_(consumes<edm::Association<reco::GenParticleCollection>>(iCfg.getParameter<edm::InputTag>("inputCollection")))
+    BeamSpot_(consumes<reco::BeamSpot>(iCfg.getParameter<edm::InputTag>("beamSpot")))
 {
     src_ = iCfg.getParameter<edm::InputTag>("src");
-    produces<edm::ValueMap<float>>("genParticledispEta");
-    produces<edm::ValueMap<float>>("genParticledispPhi");
     produces<std::vector<pat::PackedGenParticle>>();
     produces<edm::Association<std::vector<pat::PackedGenParticle>>>();
 }
@@ -30,118 +27,70 @@ void MuonMatcher::endJob(){
 void MuonMatcher::produce(edm::Event& iEv, const edm::EventSetup& eventSetup){
   eventSetup.get<GlobalTrackingGeometryRecord>().get(globalGeometry);
   eventSetup.get<IdealMagneticFieldRecord>().get(magField);
-  eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorOpposite", propagator);
+  eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorOpposite", propagator); //Opposite propagator to extrapolate to the beam spot
   
-  std::vector<float> valuesEta;
-  std::vector<float> valuesPhi;
-  edm::Handle<reco::GenParticleCollection> genParticles; 
-  reco::BeamSpot BeamSpot; //check this
+  edm::Handle<std::vector<reco::GenParticle>> genParticles; 
+  iEv.getByToken(genParts_token, genParticles); //Get the genParticles from the event info 
+  
+  edm::Handle<std::vector<reco::GenParticle>> cands;
+  iEv.getByToken(Cands_, cands); //Candidate collection
+  
+  
+  //--BeamSpot--
+  reco::BeamSpot BeamSpot;
+  edm::Handle<reco::BeamSpot> beamSpot;
+  iEv.getByToken(BeamSpot_, beamSpot);
 
-  iEv.getByToken(genParts_token, genParticles);
-  valuesEta.reserve(genParticles->size());
-  valuesPhi.reserve(genParticles->size());
+  if ( beamSpot.isValid() )
+  {
+      BeamSpot = *beamSpot;
   
-  edm::Handle<reco::GenParticleCollection> cands;
-  iEv.getByToken(Cands_, cands);
-  
-  edm::Handle<edm::Association<reco::GenParticleCollection>> asso;
-  iEv.getByToken(Asso_, asso);
-  
-  edm::Handle<edm::Association<reco::GenParticleCollection>> assoOriginal;
-  iEv.getByToken(AssoOriginal_, assoOriginal);
-  
+  } else
+  {
+      edm::LogInfo("MyAnalyzer")
+        << "No beam spot available from EventSetup \n";
+  }
   std::vector<int> mapping(genParticles->size(), -1);
-  //invert the value map from Orig2New to New2Orig
-  std::map<edm::Ref<reco::GenParticleCollection>, edm::Ref<reco::GenParticleCollection>> reverseMap;
-  
-for (unsigned int ic = 0, nc = genParticles->size(); ic < nc; ++ic) {
-cout << nc  << endl;
-  edm::Ref<reco::GenParticleCollection> originalRef = edm::Ref<reco::GenParticleCollection>(genParticles, ic);
-  edm::Ref<reco::GenParticleCollection> newRef = (*assoOriginal)[originalRef];
-  reverseMap.insert(
-      std::pair<edm::Ref<reco::GenParticleCollection>, edm::Ref<reco::GenParticleCollection>>(newRef, originalRef));
-   }
-  auto outPtrP = std::make_unique<std::vector<pat::PackedGenParticle>>();
-  unsigned int packed = 0;
+  auto outPtrP = std::make_unique<std::vector<pat::PackedGenParticle>>(); //New collection to be filled, in this case with muons 
   for (unsigned int ic = 0, nc = cands->size(); ic < nc; ++ic) {
-    const reco::GenParticle& cand = (*cands)[ic];
-    if (true) {
-    cout << "QUE PASOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO" << "\n";
-    // Obtain original gen particle collection reference from input reference and map
-    edm::Ref<reco::GenParticleCollection> inputRef = edm::Ref<reco::GenParticleCollection>(cands, ic);
-    edm::Ref<reco::GenParticleCollection> originalRef = reverseMap[inputRef];
-    edm::Ref<reco::GenParticleCollection> finalPrunedRef = (*asso)[inputRef];
-    mapping[originalRef.key()] = packed;
-    packed++;
-    if (finalPrunedRef.isNonnull()) {  //this particle exists also in the final pruned
-    outPtrP->push_back(pat::PackedGenParticle(cand, finalPrunedRef));
-    } else {
-    if (cand.numberOfMothers() > 0) {
-    edm::Ref<reco::GenParticleCollection> newRef = (*asso)[cand.motherRef(0)];
-    outPtrP->push_back(pat::PackedGenParticle(cand, newRef));
-    } else {
-    outPtrP->push_back(pat::PackedGenParticle(cand, edm::Ref<reco::GenParticleCollection>()));
-    }
+    reco::GenParticle cand = (*cands)[ic];
+    if (abs(cand.pdgId()) == 13 && (cand.status() == 1 || cand.status() == 23)) { //Selection of muons with status 23 or 1
+    math::PtEtaPhiMLorentzVector FourMomentum(cand.pt(),propagateGenPart(cand, BeamSpot),propagateGenPartPhi(cand, BeamSpot),cand.mass()); //TLorentzVector with the eta and phi propagated
+    cand.setP4(FourMomentum); //The new 4-momenta of the muon
+    outPtrP->push_back(pat::PackedGenParticle(cand, edm::Ref<std::vector<reco::GenParticle>>()));
    }
    }
-   }
-   edm::OrphanHandle<std::vector<pat::PackedGenParticle>> oh = iEv.put(std::move(outPtrP));
+   edm::OrphanHandle<std::vector<pat::PackedGenParticle>> oh = iEv.put(std::move(outPtrP)); //Put the new collection in the event
    auto gp2pgp = std::make_unique<edm::Association<std::vector<pat::PackedGenParticle>>>(oh);
    edm::Association<std::vector<pat::PackedGenParticle>>::Filler gp2pgpFiller(*gp2pgp);
    gp2pgpFiller.insert(genParticles, mapping.begin(), mapping.end());
    gp2pgpFiller.fill();
    iEv.put(std::move(gp2pgp));
-   
-  
-   
-   
-   
-   
-   
-  for(reco::GenParticleCollection::const_iterator genPart = genParticles->begin() ; genPart != genParticles->end() ; ++genPart){
-    float theEta = -5;
-    if (abs(genPart->pdgId()) == 13) theEta = propagateGenPart(genPart, BeamSpot);
-    float thePhi = -5;
-    if (abs(genPart->pdgId()) == 13) thePhi = propagateGenPartPhi(genPart, BeamSpot);
-    valuesEta.push_back(theEta);
-    valuesPhi.push_back(thePhi);
-  }
-  std::unique_ptr<edm::ValueMap<float>>  outEta(new edm::ValueMap<float>());
-  edm::ValueMap<float>::Filler fillerEta(*outEta);
-  fillerEta.insert(genParticles, valuesEta.begin(), valuesEta.end());
-  fillerEta.fill();
-  iEv.put(std::move(outEta),"genParticledispEta");
-
-  std::unique_ptr<edm::ValueMap<float>>  outPhi(new edm::ValueMap<float>());
-  edm::ValueMap<float>::Filler fillerPhi(*outPhi);
-  fillerPhi.insert(genParticles, valuesPhi.begin(), valuesPhi.end());
-  fillerPhi.fill();
-  iEv.put(std::move(outPhi),"genParticledispPhi");
 }
 
-float MuonMatcher::propagateGenPart(reco::GenParticleCollection::const_iterator gP, reco::BeamSpot BeamSpot){
-  int charge = gP->charge();
-  GlobalPoint r3GV(gP->vx(), gP->vy(), gP->vz());
-  GlobalVector p3GV(gP->px(), gP->py(), gP->pz());
+float MuonMatcher::propagateGenPart(reco::GenParticle gP, reco::BeamSpot BeamSpot){
+  int charge = gP.charge();
+  GlobalPoint r3GV(gP.vx(), gP.vy(), gP.vz());
+  GlobalVector p3GV(gP.px(), gP.py(), gP.pz());
   GlobalTrajectoryParameters tPars(r3GV, p3GV, charge, &*magField);
   FreeTrajectoryState fts = FreeTrajectoryState(tPars); 
   FreeTrajectoryState trackAtBeamSpot = propagator->propagate(fts, BeamSpot);
-  //if (!trackAtBeamSpot.isValid()) return -999; //Something broke when propagating
-  //else return trackAtBeamSpot.globalPosition().eta();
-  return trackAtBeamSpot.position().eta();
+  if (trackAtBeamSpot.position().eta() == 0) return -10; //Something broke when propagating
+  else return trackAtBeamSpot.position().eta();
+
 }
 
 
-float MuonMatcher::propagateGenPartPhi(reco::GenParticleCollection::const_iterator gP, reco::BeamSpot BeamSpot){
-  int charge = gP->charge();
-  GlobalPoint r3GV(gP->vx(), gP->vy(), gP->vz());
-  GlobalVector p3GV(gP->px(), gP->py(), gP->pz());
+float MuonMatcher::propagateGenPartPhi(reco::GenParticle gP, reco::BeamSpot BeamSpot){
+  int charge = gP.charge();
+  GlobalPoint r3GV(gP.vx(), gP.vy(), gP.vz());
+  GlobalVector p3GV(gP.px(), gP.py(), gP.pz());
   GlobalTrajectoryParameters tPars(r3GV, p3GV, charge, &*magField);
   FreeTrajectoryState fts = FreeTrajectoryState(tPars);
   FreeTrajectoryState trackAtBeamSpot = propagator->propagate(fts, BeamSpot);
-//  if (!trackAtRPC.isValid()) return -999; //Something broke when propagating
-//  else return trackAtRPC.globalPosition().phi();
-  return trackAtBeamSpot.position().phi();
+  if (trackAtBeamSpot.position().eta() == 0) return -10; //Something broke when propagating
+  else return trackAtBeamSpot.position().phi();  
+
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"

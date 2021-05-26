@@ -2,7 +2,10 @@
 #include "FWCore/Framework/interface/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Utilities/interface/Exception.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -10,7 +13,11 @@
 #include "DataFormats/GeometrySurface/interface/ReferenceCounted.h"
 #include "DataFormats/GeometrySurface/interface/BoundDisk.h"
 #include "DataFormats/GeometrySurface/interface/BoundCylinder.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "Geometry/CommonDetUnit/interface/GlobalTrackingGeometry.h"
 #include "Geometry/Records/interface/GlobalTrackingGeometryRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
@@ -29,9 +36,23 @@
 #include <string>
 #include "DataFormats/Common/interface/Association.h"
 #include "FWCore/Framework/interface/ESHandle.h"
+#include "TrackingTools/TrajectoryState/interface/TrajectoryStateOnSurface.h"
+#include "TrackingTools/GeomPropagators/interface/AnalyticalTrajectoryExtrapolatorToLine.h"
+#include "TrackingTools/GeomPropagators/interface/AnalyticalImpactPointExtrapolator.h"
+#include "DataFormats/GeometryCommonDetAlgo/interface/Measurement1D.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 
+#include "DataFormats/Common/interface/Ptr.h"
+#include "DataFormats/Common/interface/PtrVector.h"
+#include "DataFormats/Common/interface/RefProd.h"
+#include "DataFormats/Common/interface/Ref.h"
+#include "DataFormats/Common/interface/RefVector.h"
+#include <map>
+#include "DataFormats/Common/interface/View.h"
 
 class MuonMatcher : public edm::EDProducer{
   public:
@@ -40,16 +61,15 @@ class MuonMatcher : public edm::EDProducer{
 
   private:
     virtual void beginJob();
-    float propagateGenPart(std::vector<reco::GenParticle>::const_iterator, reco::BeamSpot BeamSpot);
-    float propagateGenPartPhi(std::vector<reco::GenParticle>::const_iterator, reco::BeamSpot BeamSpot);
+    float propagateGenPart(reco::GenParticle, reco::BeamSpot);
+    float propagateGenPartPhi(reco::GenParticle, reco::BeamSpot);
     virtual void produce(edm::Event&, const edm::EventSetup&);
     virtual void endJob();
     edm::InputTag src_;
-    const edm::EDGetTokenT<reco::GenParticleCollection> genParts_token;
+    const edm::EDGetTokenT<std::vector<reco::GenParticle>> genParts_token;
     edm::ESHandle<GlobalTrackingGeometry> globalGeometry;
     edm::ESHandle<MagneticField> magField;
     edm::ESHandle<Propagator> propagator;
-    const edm::EDGetTokenT<reco::GenParticleCollection> Cands_;
-    const edm::EDGetTokenT<edm::Association<reco::GenParticleCollection>> Asso_;
-    const edm::EDGetTokenT<edm::Association<reco::GenParticleCollection>> AssoOriginal_;
+    edm::EDGetTokenT<std::vector<reco::GenParticle>> Cands_;
+    const edm::EDGetTokenT<reco::BeamSpot> BeamSpot_;
 };
