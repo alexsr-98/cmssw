@@ -51,8 +51,10 @@
 #include "DataFormats/Common/interface/RefProd.h"
 #include "DataFormats/Common/interface/Ref.h"
 #include "DataFormats/Common/interface/RefVector.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
 #include <map>
 #include "DataFormats/Common/interface/View.h"
+#include <math.h>
 
 class MuonMatcher : public edm::EDProducer{
   public:
@@ -61,15 +63,15 @@ class MuonMatcher : public edm::EDProducer{
 
   private:
     virtual void beginJob();
-    float propagateGenPart(reco::GenParticle, reco::BeamSpot);
-    float propagateGenPartPhi(reco::GenParticle, reco::BeamSpot);
+    math::XYZTLorentzVectorD propagateGenPartMomentum(reco::GenParticle, reco::BeamSpot);
+    math::XYZPoint propagateGenPartVertex(reco::GenParticle, reco::BeamSpot);
     virtual void produce(edm::Event&, const edm::EventSetup&);
     virtual void endJob();
-    edm::InputTag src_;
-    const edm::EDGetTokenT<std::vector<reco::GenParticle>> genParts_token;
+    //edm::InputTag src_;
+    //const edm::EDGetTokenT<std::vector<reco::GenParticle>> genParts_token;
     edm::ESHandle<GlobalTrackingGeometry> globalGeometry;
     edm::ESHandle<MagneticField> magField;
     edm::ESHandle<Propagator> propagator;
     edm::EDGetTokenT<std::vector<reco::GenParticle>> Cands_;
-    const edm::EDGetTokenT<reco::BeamSpot> BeamSpot_;
+    edm::EDGetTokenT<reco::BeamSpot> BeamSpot_;
 };
