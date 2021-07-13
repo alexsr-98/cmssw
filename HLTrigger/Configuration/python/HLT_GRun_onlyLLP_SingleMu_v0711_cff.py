@@ -13506,6 +13506,28 @@ fragment.hltL3fL1f0L2f0Filtered24Displaced = cms.EDFilter( "HLTMuonL3SimplePreFi
      MinPt = cms.double( 24.0 ),
      NSigmaPt = cms.double( 0.0 )
  )
+ 
+ 
+fragment.hltL3orL2fL1f0Filtered24Displaced = cms.EDFilter( "HLTMuonL3orL2PreFilter",
+     MaxNormalizedChi2 = cms.double( 9999.0 ),
+     saveTags = cms.bool( True ),
+     MaxDXYBeamSpot = cms.double( 9999.0 ),
+     MinDXYBeamSpot = cms.double( -1.0 ),
+     MinDxySig = cms.double( -1.0 ),
+     MatchToPreviousCand = cms.bool( False ),
+     MaxPtDifference = cms.double( 9999.0 ),
+     MaxEta = cms.double( 2.5 ),
+     CandTag = cms.InputTag( "hltIterL3OIGlbDisplacedMuonCandidates" ),
+     BeamSpotTag = cms.InputTag( "hltOnlineBeamSpot" ),
+     PreviousCandTag = cms.InputTag( "hltL2fL1sMuORL1f0L2NoVtxf0" ),
+     L2CandTag = cms.InputTag("hltL2MuonCandidatesNoVtxMeanTimerCosmicSeedExhaustive"),
+     MinNmuonHits = cms.int32( 0 ),
+     MinN = cms.int32( 1 ),
+     MinTrackPt = cms.double( 0.0 ),
+     MaxDz = cms.double( 9999.0 ),
+     MinPt = cms.double( 24.0 ),
+     NSigmaPt = cms.double( 0.0 )
+ )
 
 ###########################################################################################
 #######################################  END NEW HLT PATH #################################
@@ -13611,11 +13633,14 @@ fragment.HLT_Mu24NoFiltersNoVtxDisplaced_v1 = cms.Path( fragment.HLTBeginSequenc
 ###       - L2 cosmic reconstruction with exhaustive seeding
 fragment.HLT_Mu24GlbDisplaced_v1 = cms.Path( fragment.HLTBeginSequence + fragment.hltL1sSingleMuOR + fragment.hltPreMu24GlbDisplaced + fragment.hltL1fL1sMuORL1Filtered0 + fragment.HLTL2muonrecoSequenceNoVtxCosmicSeedMeanTimerExhaustive + cms.ignore(fragment.hltL2fL1sMuORL1f0L2NoVtxf0)  + fragment.HLTL3GlobalDisplacedMuonRecoSequence + fragment.hltL3fL1f0L2f0Filtered24Displaced + fragment.HLTEndSequence )
 
+###       - GlbMuons and dSA (when glb doesnt exist)
+fragment.HLT_Mu24GlbDisplacedAndDSA_v1 = cms.Path( fragment.HLTBeginSequence + fragment.hltL1sSingleMuOR + fragment.hltPreMu24GlbDisplaced + fragment.hltL1fL1sMuORL1Filtered0 + fragment.HLTL2muonrecoSequenceNoVtxCosmicSeedMeanTimerExhaustive + cms.ignore(fragment.hltL2fL1sMuORL1f0L2NoVtxf0)  + fragment.HLTL3GlobalDisplacedMuonRecoSequence + fragment.hltL3orL2fL1f0Filtered24Displaced + fragment.HLTEndSequence )
+
 
 fragment.HLTriggerFinalPath = cms.Path( fragment.hltGtStage2Digis + fragment.hltScalersRawToDigi + fragment.hltFEDSelector + fragment.hltTriggerSummaryAOD + fragment.hltTriggerSummaryRAW + fragment.hltBoolFalse )
 
 
-fragment.HLTSchedule = cms.Schedule( *(fragment.HLTriggerFirstPath, fragment.HLT_IsoMu24_v13, fragment.HLT_L2Mu24NoVtx_2Cha_v1, fragment.HLT_L2Mu24NoVtx_2Cha_CosmicSeed_v1, fragment.HLT_Mu24NoFiltersNoVtxDisplaced_v1, fragment.HLT_Mu24GlbDisplaced_v1, fragment.HLTriggerFinalPath ))
+fragment.HLTSchedule = cms.Schedule( *(fragment.HLTriggerFirstPath, fragment.HLT_IsoMu24_v13, fragment.HLT_L2Mu24NoVtx_2Cha_v1, fragment.HLT_L2Mu24NoVtx_2Cha_CosmicSeed_v1, fragment.HLT_Mu24NoFiltersNoVtxDisplaced_v1, fragment.HLT_Mu24GlbDisplaced_v1, fragment.HLT_Mu24GlbDisplacedAndDSA_v1,fragment.HLTriggerFinalPath ))
 
 
 # dummyfy hltGetConditions in cff's

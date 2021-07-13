@@ -17,14 +17,14 @@ process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
-process.load('HLTrigger.Configuration.HLT_GRun_onlyLLP_SingleMu_v0512_cff')
+process.load('HLTrigger.Configuration.HLT_GRun_onlyLLP_SingleMu_v0711_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load("HLTrigger.Configuration.MuonMatcher_cfg")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1),
+    input = cms.untracked.int32(100),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -89,9 +89,11 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
     'keep recoRecoChargedCandidates_*_*_*',
     'keep triggerTriggerFilterObjectWithRefs_*_*_*',
     'keep *_hltOnlineBeamSpot_*_*',
-    'keep l1tMuonBXVector_*_*_*'),
+    'keep l1tMuonBXVector_*_*_*',
+    'keep recoRecoChargedCandidate_*_*_*',),
     splitLevel = cms.untracked.int32(0)
 )
+
 
 # Additional output definition  
 ##SF process.muonNtuples = cms.EDAnalyzer("MuonNtuples", 
