@@ -14,7 +14,6 @@
 #include "DataFormats/HLTReco/interface/TriggerRefsCollections.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidateFwd.h"
-#include "DataFormats/Candidate/interface/OverlapChecker.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -110,7 +109,7 @@ bool HLTMuonL3orL2PreFilter::hltFilter(edm::Event& iEvent,
 
   Handle<BeamSpot> recoBeamSpotHandle;
   iEvent.getByToken(beamspotToken_, recoBeamSpotHandle);
-  OverlapChecker overlaps;
+
   // Number of objects passing the L3 Trigger or L2:
   int n = 0;
   bool firstIteration = true; 
@@ -272,10 +271,8 @@ bool HLTMuonL3orL2PreFilter::hltFilter(edm::Event& iEvent,
     if (firstIteration){
       n++;
       filterproduct.addObject(TriggerMuon, cand);}
-    ////CHECK HERE IF L2 AND L3 MUONS ARE THE SAME
-    
-    
-    if (overlaps(*L2cand, *cand)){
+    ////CHECK HERE IF L2 AND L3 MUONS ARE THE SAME (now a deltaR matching is implemented between the L2 and L3 candidates, maybe this could be improved)
+    if ((!cand.isNull() && !L2cand.isNull() && (checkOverlap(*L2cand, *cand)))){
     matchedL3 = true;}  
   }  //for iMu
 

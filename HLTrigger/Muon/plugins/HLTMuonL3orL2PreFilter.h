@@ -16,7 +16,10 @@
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
+#include "DataFormats/Common/interface/RefToBase.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/TrackReco/interface/Track.h"
 
 class HLTMuonL3orL2PreFilter : public HLTFilter {
 public:
@@ -26,7 +29,9 @@ public:
   bool hltFilter(edm::Event &,
                  const edm::EventSetup &,
                  trigger::TriggerFilterObjectWithRefs &filterproduct) const override;
-
+  
+  bool checkOverlap(const reco::RecoChargedCandidate r1, const reco::RecoChargedCandidate r2) const {
+    return (deltaR(r1,r2)<0.05);}
 private:
   static bool triggerdByPreviousLevel(const reco::RecoChargedCandidateRef &,
                                       const std::vector<reco::RecoChargedCandidateRef> &);
